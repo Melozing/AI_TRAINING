@@ -1,21 +1,27 @@
 ﻿using OpenAI;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Samples.Whisper
 {
     public class Whisper : MonoBehaviour
     {
         [SerializeField] private Button recordButton;
+        [SerializeField] private Image recordButtonImage;
+        [SerializeField] private Sprite defaultSprite;
+        [SerializeField] private Sprite recordingSprite;
         [SerializeField] private Image progressBar;
-        [SerializeField] private Text message;
-        [SerializeField] private Dropdown dropdown;
+        [SerializeField] private TMP_InputField inputField;
+        [SerializeField] private TMP_Dropdown dropdown;
+        [SerializeField] private GameObject whisperUI;
 
         private readonly string fileName = "output.wav";
         private readonly int duration = 5;
 
         private AudioClip clip;
         private bool isRecording;
+        private bool canRecord = true; // Control recording availability
         private float time;
         private OpenAIApi openai;
 
@@ -36,11 +42,11 @@ namespace Samples.Whisper
             }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-            dropdown.options.Add(new Dropdown.OptionData("Microphone not supported on WebGL"));
+            dropdown.options.Add(new TMP_Dropdown.OptionData("Microphone not supported on WebGL"));
 #else
             foreach (var device in Microphone.devices)
             {
-                dropdown.options.Add(new Dropdown.OptionData(device));
+                dropdown.options.Add(new TMP_Dropdown.OptionData(device)); // Changed to TMP_Dropdown.OptionData
             }
             recordButton.onClick.AddListener(StartRecording);
             dropdown.onValueChanged.AddListener(ChangeMicrophone);
@@ -57,8 +63,21 @@ namespace Samples.Whisper
 
         private void StartRecording()
         {
+            // Check if recording is allowed
+            if (!canRecord)
+            {
+                Debug.Log("Recording is disabled while NPC is thinking/responding");
+                return;
+            }
+
             isRecording = true;
             recordButton.enabled = false;
+
+            // Change button image to recording state
+            if (recordButtonImage != null && recordingSprite != null)
+            {
+                recordButtonImage.sprite = recordingSprite;
+            }
 
             var index = PlayerPrefs.GetInt("user-mic-device-index");
 
@@ -69,7 +88,8 @@ namespace Samples.Whisper
 
         private async void EndRecording()
         {
-            message.text = "Transcripting...";
+            if (inputField != null)
+                inputField.text = "Transcripting...";
 
 #if !UNITY_WEBGL
             Microphone.End(null);
@@ -87,8 +107,15 @@ namespace Samples.Whisper
             var res = await openai.CreateAudioTranscription(req);
 
             progressBar.fillAmount = 0;
-            message.text = res.Text;
+            if (inputField != null)
+                inputField.text = res.Text;
             recordButton.enabled = true;
+
+            // Change button image back to default state
+            if (recordButtonImage != null && defaultSprite != null)
+            {
+                recordButtonImage.sprite = defaultSprite;
+            }
         }
 
         private void Update()
@@ -104,6 +131,41 @@ namespace Samples.Whisper
                     isRecording = false;
                     EndRecording();
                 }
+            }
+        }
+
+        // Public methods to control Whisper UI and recording
+        public void ShowWhisperUI()
+        {
+            if (whisperUI != null)
+                whisperUI.SetActive(true);
+        }
+
+        public void HideWhisperUI()
+        {
+            if (whisperUI != null)
+                whisperUI.SetActive(false);
+        }
+
+        public void EnableRecording()
+        {
+            canRecord = true;
+            if (recordButton != null)
+                recordButton.interactable = true;
+        }
+
+        public void DisableRecording()
+        {
+            canRecord = false;
+            if (recordButton != null)
+                recordButton.interactable = false;
+
+            // If currently recording, stop it
+            if (isRecording)
+            {
+                time = 0;
+                isRecording = false;
+                EndRecording();
             }
         }
     }

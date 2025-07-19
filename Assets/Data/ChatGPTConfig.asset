@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3ab38cabd6cde94fb2bcadbb1ac9cde, type: 3}
   m_Name: ChatGPTConfig
   m_EditorClassIdentifier: 
-  strApiKey: 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
+  strApiKey: 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
   strModel: deepseek/deepseek-chat-v3-0324:free
   intMaxTokens: 400
   fltTemperature: 0.7

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// Manages all input events and provides a centralized input system
@@ -43,6 +44,12 @@ public class InputManager : MonoBehaviour
     /// </summary>
     private void HandleMouseInput()
     {
+        // Check if mouse is over UI element - prevent movement if so
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return; // Don't handle movement when clicking on UI
+        }
+
         if (blnUseHoldToMove)
         {
             // Hold mouse to move continuously

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// Controls player movement and skills with SFX integration
@@ -86,6 +87,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void HandleMovement()
     {
+        // Check if mouse is over UI element - prevent movement if so
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return; // Don't handle movement when clicking on UI
+        }
+
         // Handle mouse click and drag
         if (Input.GetMouseButtonDown(0)) // Left click
         {

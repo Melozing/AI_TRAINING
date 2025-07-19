@@ -22,7 +22,7 @@ public class MovementController : MonoBehaviour
 
     private void Awake()
     {
-        objRigidbody = GetComponent<Rigidbody>();
+        objRigidbody = GetComponentInChildren<Rigidbody>();
         if (objRigidbody == null)
         {
             Debug.LogError("MovementController: Rigidbody component not found!");
